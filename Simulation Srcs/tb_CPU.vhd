@@ -1,3 +1,7 @@
+--------------------------------------------------------------------------------
+-- Test bench to simulate the single cycle RV32I core.
+-- The instructions to be executed are flashed from a text file.
+--------------------------------------------------------------------------------
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
@@ -7,9 +11,14 @@ entity tb_CPU is
 end entity tb_CPU;
 
 architecture tb_beh of tb_CPU is
-    signal num_instructs : integer := 34;
+    signal num_instructs : integer := 34;                                           --  Number of instructions present in text file
     type RAM_type is array(0 to num_instructs - 1) of std_logic_vector(31 downto 0);
 
+    --------------------------------------------------------------------------------
+    -- Function to load the instruction memory from a text file in the working
+    -- directory. The instructions in text file have to be in 32-bit binary
+    -- format.
+    --------------------------------------------------------------------------------
     impure function init_RAM_bin return RAM_type is
         file instructions : text open read_mode is "code_translated.txt";
         variable instruct_line : line;
@@ -21,6 +30,7 @@ architecture tb_beh of tb_CPU is
         end loop;
         return ram_content;
     end function;
+
     signal i : integer := 0;  
     signal flash_data : RAM_type := init_RAM_bin;
     
@@ -38,6 +48,9 @@ begin
                         i_flash_en => tb_flash_enable,
                         o_instruct_overflow => tb_instruct_overflow);
 
+    --------------------------------------------------------------------------------
+    -- Process to generate a 1KHz Clock signal
+    --------------------------------------------------------------------------------
     clk_proc : process
     begin
         tb_clk <= '0';
@@ -46,6 +59,9 @@ begin
         wait for 0.5 ms;
     end process clk_proc;
 
+    --------------------------------------------------------------------------------
+    -- Process to flash the instruction memory contents to the CPU
+    --------------------------------------------------------------------------------
     start_up_proc : process(tb_clk)
     begin
         if rising_edge(tb_clk) then
