@@ -20,8 +20,7 @@ entity ALU is
     port (  i_data_1, i_data_2 : in std_logic_vector(31 downto 0);      -- 32-bit input data
             i_oper_sel : in std_logic_vector(3 downto 0);               -- 4-bit operation select line
             o_data : out std_logic_vector(31 downto 0);                 -- 32-bit output data
-            o_zero : out std_logic;                                     -- Output zero flag 
-            o_sign : out std_logic);                                    -- Output sign flag
+            o_zero : out std_logic);                                    -- Output zero flag 
 end entity ALU;
 
 architecture beh_ALU of ALU is
@@ -35,7 +34,6 @@ begin
     s_ALUin1_signed <= signed(i_data_1);            --  Type conversion of input data 1 to signed for behavourial simulation
     s_ALUin2_signed <= signed(i_data_2);            --  Type conversion of input data 2 to signed for behavourial simulation
     o_data <= std_logic_vector(s_ALUout_us);        --  Connect multiplexer output to output of ALU                            
-    o_sign <= std_logic(s_ALUout_us(31));           --  Sign flag is connected to the 32nd bit of the data output
     shamt <= to_integer(s_ALUin2_us(4 downto 0));   --  Shift amount (lower 5 bits) for behavioral simulation of shift operations 
 
     --------------------------------------------------------------------------------
