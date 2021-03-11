@@ -1,36 +1,55 @@
 ---------------------------------------------------------------------------------
--- A 1KB instruction memory module having :
--- Synchronous Write / Asynchronous Read
--- 32-bit word read and write (non word-aligned reads/writes not required)
+-- A 1KB instruction ROM having :
+-- 32-bit word synchronous Read
 --------------------------------------------------------------------------------
+
 library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
+use std.textio.all;
 
-entity instruction_BRAM is
+entity instruction_BROM is
     port (  i_clk : in std_logic;
-            i_write_en : in std_logic;
+            i_rst : in std_logic;
             i_addr : in std_logic_vector(7 downto 0);
-            i_data_in : in std_logic_vector(31 downto 0);
             o_data_out : out std_logic_vector(31 downto 0)
     );
-end entity instruction_BRAM;
+end entity instruction_BROM;
 
-architecture beh of instruction_BRAM is
-    type RAM_type is array(0 to 255) of std_logic_vector(31 downto 0);
-    signal RAM : RAM_type;
+architecture beh of instruction_BROM is
+    type ROM_type is array(0 to 255) of std_logic_vector(31 downto 0);
+    signal num_instructs : integer := 18;
+    
+    impure function init_ROM (rom_file : in string)  return ROM_type is 
+        FILE romfile : text open read_mode is rom_file;
+        variable instruct : line;
+        variable rom : rom_type;
+        variable temp_bv : bit_vector(31 downto 0);
+    begin
+            for i in 0 to num_instructs - 1 loop
+                readline(romfile, instruct);
+                read(instruct, temp_bv);
+                rom(i) := to_stdlogicvector(temp_bv);
+            end loop;
+            return rom;
+    end function;
+    
+    signal ROM : ROM_type := init_ROM("code_translated.txt");
+    signal s_addr : unsigned(7 downto 0);
     
 begin
-    proc_name: process(i_clk)
+    read_proc: process(i_clk)
     begin
         --------------------------------------------------------------------------------
-        -- All writes are synchronous with input clock
+        -- All reads are synchronous with input clock
         --------------------------------------------------------------------------------
         if rising_edge(i_clk) then
-            if i_write_en = '1' then
-                RAM(to_integer(unsigned(i_addr))) <= i_data_in;
+            if i_rst = '1' then 
+                s_addr <= (others => '0');
+            else
+                s_addr <= unsigned(i_addr);
             end if;
         end if;
-    end process proc_name;
-    o_data_out <= RAM(to_integer(i_addr));
+    end process read_proc;
+    o_data_out <= ROM(to_integer(s_addr));
 end architecture beh;
