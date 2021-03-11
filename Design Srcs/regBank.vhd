@@ -9,8 +9,8 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity reg32 is
-    port (  clk : in std_logic;         -- Input active-high clock signal
-            rst : in std_logic;         -- Input active-high reset signal
+    port (  i_clk : in std_logic;         -- Input active-high clock signal
+            i_rst : in std_logic;         -- Input active-high reset signal
             i_write_en : in std_logic;  -- Input active-high write enable signal
             i_write_data : in std_logic_vector(31 downto 0);    -- 32-bit data input for writes
             i_read_addr_1, i_read_addr_2, i_write_addr : in std_logic_vector(4 downto 0);   -- 3 5-bit address ports : 1 for write and 2 for read
@@ -19,7 +19,7 @@ end entity reg32;
 
 architecture reg_beh of reg32 is
     type reg_type is array (0 to 31) of std_logic_vector(31 downto 0);      -- Register bank type for 32 x 32 register
-    signal reg_file : reg_type;                                             -- Instance of register bank
+    signal reg_file : reg_type;                  -- Instance of register bank
 begin
     --------------------------------------------------------------------------------
     -- Combinational (asynchronous logic) for data reads
@@ -33,14 +33,14 @@ begin
     --------------------------------------------------------------------------------
     -- Synchronous logic for data writes
     --------------------------------------------------------------------------------
-    write_proc: process(clk, rst)
+    write_proc: process(i_clk, i_rst)
     begin
         --------------------------------------------------------------------------------
         --  If rst is active, initialize all register locations to 0x00000 (asynchronous reset)
         --------------------------------------------------------------------------------
-        if rst = '1' then
+        if i_rst = '1' then
             reg_file <= (others => x"00000000");
-        elsif rising_edge(clk) then
+        elsif rising_edge(i_clk) then
             --------------------------------------------------------------------------------
             --  Prevent writes to the zero register at address 0
             --------------------------------------------------------------------------------
